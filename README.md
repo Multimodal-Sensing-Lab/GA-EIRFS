@@ -422,11 +422,7 @@ This work builds directly on our earlier
 ## Acknowledgements
 
 Built on top of [OpenPCDet](https://github.com/open-mmlab/OpenPCDet), an open-source toolbox for
-LiDAR-based 3D object detection. This research was supported by the Business Finland WISEC
-project (Grant 3630/31/2024), the University of Oulu and the Research Council of Finland 6G
-Flagship Programme (Grant 346208), the Profi5 HiDyn programme (326291), and the Profi7 Hybrid
-Intelligence programme (352788). The authors acknowledge CSC, IT Center for Science, Finland, for
-computational resources.
+LiDAR-based 3D object detection. The authors thank the OpenPCDet team for their work and for making it available to the research community. The authors also thank the nuScenes team for providing the nuScenes dataset and the KITTI team for providing the KITTI dataset.
 
 ## License
 
