@@ -51,27 +51,6 @@ which frames it was shown more often during training.*
 
 ---
 
-## Highlights
-
-- **$G_c$, a geometric complexity score** built from three measurable point-cloud properties
-  (density, surface-normal entropy, voxel occupancy), with three concrete fixes to a naive
-  version of this score that we found breaks its own stated hypothesis.
-- **A geometry-augmented repeat factor** that reduces exactly to E-IRFS when the geometry term
-  is disabled ($\beta{=}0$), making $\beta$ a direct, one-parameter ablation handle.
-- **Per-class gains that track a measurable mechanism, not luck.** The realized exposure gain a
-  class receives correlates with its accuracy change (Spearman $\rho{\approx}0.70$) far better
-  than the geometry score alone does ($\rho{\approx}0.32$), because geometry helps most when it
-  amplifies an existing frequency-driven need for exposure.
-- **Validated on two detectors, two datasets, replicated across many seeds.** CenterPoint and
-  PointPillars on nuScenes (2 seeds each), and a cross-dataset transfer check on KITTI
-  (PointPillars, 6 seeds), all with hyperparameters that were tuned once on nuScenes and never
-  touched again.
-- **Honest about where it doesn't work.** Not every class benefits reliably, and this repo's
-  results tables report that plainly rather than only showing the classes that improved. See
-  [Results](#results).
-
----
-
 ## Installation
 
 GA-EIRFS is a sampler, not a standalone detector. It plugs into
