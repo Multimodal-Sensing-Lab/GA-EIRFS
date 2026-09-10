@@ -8,7 +8,7 @@
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](#installation)
 [![Built on OpenPCDet](https://img.shields.io/badge/built%20on-OpenPCDet-orange.svg)](https://github.com/open-mmlab/OpenPCDet)
 
-**[Paper (PDF)](#-citation) · [Installation](#-installation) · [Dataset Prep](#-dataset-preparation) · [Getting Started](#-getting-started) · [Results](#-results)**
+**[Paper (PDF)]() · [Installation](#installation) · [Dataset Prep](#dataset-preparation) · [Getting Started](#getting-started) · [Results](#results)**
 
 </div>
 
@@ -68,7 +68,7 @@ which frames it was shown more often during training.*
   touched again.
 - **Honest about where it doesn't work.** Not every class benefits reliably, and this repo's
   results tables report that plainly rather than only showing the classes that improved. See
-  [Results](#-results).
+  [Results](#results).
 
 ---
 
@@ -285,7 +285,7 @@ python train.py --cfg_file cfgs/kitti_models/pointpillar_ga_eirfs.yaml \
 ```
 
 For seed replication (recommended, single-seed results can be misleading, see
-[Results](#-results)), add `--fix_random_seed --seed <N>`.
+[Results](#results)), add `--fix_random_seed --seed <N>`.
 
 ### Evaluate a checkpoint
 
