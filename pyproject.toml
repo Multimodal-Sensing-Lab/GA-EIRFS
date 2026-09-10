@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ga-eirfs"
+version = "1.0.0"
+description = "Geometry-Augmented Repeat Factor Sampling for long-tailed LiDAR 3D object detection"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "open3d",
+]
+
+[project.urls]
+Homepage = "https://github.com/REPLACE_ME/GA-EIRFS"
+Paper = "REPLACE_ME_WITH_ARXIV_OR_PROCEEDINGS_LINK"
+
+[tool.setuptools.packages.find]
+include = ["ga_eirfs*"]

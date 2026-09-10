@@ -1,0 +1,16 @@
+# Core dependencies for the ga_eirfs sampler package itself.
+#
+# torch, torchvision, and spconv are NOT listed here on purpose: which build
+# you need depends on your CUDA version, and you install them as part of the
+# OpenPCDet setup below (see README "Installation"), not as a dependency of
+# this package.
+
+numpy
+scipy
+open3d
+
+# Only needed if you use scripts/render_comparison_video.py or
+# scripts/plot_frequency_vs_density.py:
+matplotlib
+imageio
+imageio-ffmpeg

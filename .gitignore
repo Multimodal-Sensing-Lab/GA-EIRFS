@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Local scratch outputs, not part of the repo
+output/
+output_viz/local/
+*.pth
+*.pkl
