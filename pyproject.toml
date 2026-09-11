@@ -16,7 +16,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/REPLACE_ME/GA-EIRFS"
+Homepage = "https://github.com/Multimodal-Sensing-Lab/GA-EIRFS"
+"Project Page" = "https://multimodal-sensing-lab.github.io/GA-EIRFS/"
 Paper = "REPLACE_ME_WITH_ARXIV_OR_PROCEEDINGS_LINK"
 
 [tool.setuptools.packages.find]
