@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GA-EIRFS: Geometry-Augmented Repeat Factor Sampling</title>
+<meta name="description" content="GA-EIRFS: Geometry-Augmented Repeat Factor Sampling for Long-Tailed LiDAR 3D Object Detection.">
+<style>
+  :root{
+    --bg: #ffffff;
+    --bg-soft: #f6f7fb;
+    --text: #1a1d29;
+    --text-muted: #565a6e;
+    --border: #e4e6ef;
+    --accent: #3d4ff0;
+    --accent-dark: #2c39c4;
+    --code-bg: #1a1d29;
+    --code-text: #e8e9f3;
+    --good: #1b7a4c;
+    --bad: #8a1f2b;
+    --radius: 14px;
+    --maxw: 940px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;}
+  code, pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;}
+
+  /* nav */
+  nav{
+    position:sticky;top:0;z-index:10;
+    background:rgba(255,255,255,0.86);
+    backdrop-filter:saturate(180%) blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  nav .inner{
+    max-width:var(--maxw);margin:0 auto;padding:12px 24px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+  nav .brand{font-weight:700;letter-spacing:0.2px;color:var(--text);}
+  nav .links{display:flex;gap:20px;flex-wrap:wrap;font-size:14px;}
+  nav .links a{color:var(--text-muted);font-weight:500;}
+  nav .links a:hover{color:var(--accent);text-decoration:none;}
+
+  /* hero */
+  header.hero{padding:64px 0 40px;text-align:center;}
+  .eyebrow{
+    display:inline-block;font-size:12.5px;font-weight:700;letter-spacing:1.2px;
+    text-transform:uppercase;color:var(--accent);margin-bottom:18px;
+  }
+  h1.title{
+    font-size:clamp(28px,4.2vw,42px);
+    line-height:1.25;margin:0 auto 22px;max-width:840px;font-weight:800;letter-spacing:-0.5px;
+  }
+  .authors{font-size:17px;margin:0 auto 10px;max-width:760px;color:var(--text);}
+  .authors sup{font-size:11px;color:var(--accent);font-weight:700;}
+  .affils{font-size:14px;color:var(--text-muted);margin:0 auto 30px;max-width:760px;}
+  .affils sup{font-size:11px;color:var(--accent);font-weight:700;margin-right:2px;}
+
+  .badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:8px;}
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1.5px solid var(--border);border-radius:999px;
+    padding:9px 20px;font-size:14.5px;font-weight:600;color:var(--text);
+    background:var(--bg);transition:all .15s ease;
+  }
+  .badge:hover{border-color:var(--accent);color:var(--accent);text-decoration:none;transform:translateY(-1px);}
+  .badge.primary{background:var(--text);color:#fff;border-color:var(--text);}
+  .badge.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
+  .badge.disabled{opacity:.45;cursor:default;}
+  .badge.disabled:hover{border-color:var(--border);color:var(--text);transform:none;}
+
+  /* teaser */
+  .teaser{padding:10px 0 8px;}
+  .teaser img{width:100%;height:auto;border-radius:var(--radius);border:1px solid var(--border);display:block;}
+  .caption{font-size:14px;color:var(--text-muted);text-align:center;max-width:780px;margin:16px auto 0;}
+
+  section{padding:56px 0;border-top:1px solid var(--border);}
+  section.hero-section{border-top:none;}
+  h2{font-size:26px;font-weight:800;letter-spacing:-0.3px;margin:0 0 20px;}
+  h3{font-size:18px;font-weight:700;margin:28px 0 12px;}
+  p{color:var(--text);}
+  .lede{font-size:17px;color:var(--text-muted);max-width:760px;}
+
+  .highlights{list-style:none;margin:0;padding:0;display:grid;gap:16px;}
+  .highlights li{
+    padding:16px 18px;background:var(--bg-soft);border:1px solid var(--border);
+    border-radius:12px;font-size:15.5px;
+  }
+  .highlights li strong{color:var(--text);}
+
+  /* video */
+  .video-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:#000;}
+  video{display:block;width:100%;height:auto;}
+
+  /* tables */
+  .table-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--border);}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:520px;}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+  thead th{background:var(--bg-soft);font-weight:700;color:var(--text);}
+  tbody tr:last-child td{border-bottom:none;}
+  td.win{color:var(--good);font-weight:700;}
+  td.flat{color:var(--text-muted);}
+  .note{font-size:14.5px;color:var(--text-muted);margin-top:14px;}
+
+  /* citation */
+  .cite-block{position:relative;margin:0 0 20px;}
+  pre.bibtex{
+    background:var(--code-bg);color:var(--code-text);border-radius:12px;
+    padding:20px;overflow-x:auto;font-size:13px;line-height:1.6;margin:0;
+  }
+  .copy-btn{
+    position:absolute;top:12px;right:12px;
+    background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.25);
+    border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;
+  }
+  .copy-btn:hover{background:rgba(255,255,255,0.2);}
+
+  footer{padding:40px 0 60px;text-align:center;color:var(--text-muted);font-size:14px;}
+  footer a{color:var(--text-muted);text-decoration:underline;}
+
+  @media (max-width:640px){
+    header.hero{padding:44px 0 28px;}
+    section{padding:40px 0;}
+    nav .links{font-size:13px;gap:14px;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <span class="brand">GA-EIRFS</span>
+    <div class="links">
+      <a href="#abstract">Abstract</a>
+      <a href="#method">Method</a>
+      <a href="#demo">Demo</a>
+      <a href="#results">Results</a>
+      <a href="#citation">Citation</a>
+      <a href="https://github.com/Multimodal-Sensing-Lab/GA-EIRFS">Code</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero hero-section">
+  <div class="wrap">
+    <span class="eyebrow">Under Review, 2027</span>
+    <h1 class="title">GA-EIRFS: Geometry-Augmented Repeat Factor Sampling<br>for Long-Tailed LiDAR 3D Object Detection</h1>
+
+    <p class="authors">
+      Taufiq Ahmed<sup>1</sup> ·
+      Constantino Álvarez Casado<sup>1</sup> ·
+      Daniel Herrera Castro<sup>1</sup> ·
+      Sasan Sharifipour<sup>1</sup> ·
+      Abhishek Kumar<sup>2</sup> ·
+      Miguel Bordallo López<sup>1</sup>
+    </p>
+    <p class="affils">
+      <sup>1</sup>Center for Machine Vision and Signal Analysis (CMVS), University of Oulu, Finland &nbsp;·&nbsp;
+      <sup>2</sup>University of Jyväskylä, Finland
+    </p>
+
+    <div class="badges">
+      <a class="badge disabled" href="#" onclick="return false;" title="Paper is under review — link added once public">📄 Paper (PDF)</a>
+      <a class="badge primary" href="https://github.com/Multimodal-Sensing-Lab/GA-EIRFS">💻 Code</a>
+      <a class="badge" href="#citation">❝ ❞ BibTeX</a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap teaser">
+  <img src="assets/three_way_comparison_v2_1.png" alt="Vanilla vs E-IRFS vs GA-EIRFS bird's-eye-view comparison on a nuScenes bicycle cluster">
+  <p class="caption">
+    nuScenes val sample 1324, a cluster of bicycles at bird's-eye view. Green boxes are ground
+    truth, red dashed boxes are predictions scoring at least 0.3. Vanilla and E-IRFS produce the
+    same two detections at the same confidence, 0.34 and 0.31, since E-IRFS's frequency-only
+    signal isn't enough to change behavior on its own. GA-EIRFS detects more of the same cluster,
+    at higher confidence — 0.42 and 0.35 among them — with no change to the detector itself, only
+    to which frames it was shown more often during training.
+  </p>
+</div>
+
+<section id="abstract">
+  <div class="wrap">
+    <h2>Abstract</h2>
+    <p class="lede">
+      Long-tailed 3D object detection is usually treated as a class-frequency problem: rare
+      classes get resampled more often, purely based on how rarely they appear. GA-EIRFS shows
+      that frequency alone is not enough, because classes with similar rarity can carry very
+      different amounts of LiDAR evidence. A bicycle and a trailer can be equally rare in a
+      driving dataset, but a bicycle returns a handful of LiDAR points while a trailer returns
+      hundreds, simply because of its size — a rebalancing rule that only counts instances cannot
+      tell these two cases apart.
+    </p>
+    <p class="lede">
+      GA-EIRFS extends <a href="https://arxiv.org/abs/2503.21893">E-IRFS</a>'s frequency-based
+      repeat factor with a fixed, class-level geometric complexity score (G<sub>c</sub>), computed
+      once from the training split's point density, surface-normal entropy, and voxel occupancy.
+      The score modulates the exponent of the repeat factor, so geometry amplifies an existing
+      frequency-driven need for exposure rather than acting as an independent difficulty signal.
+    </p>
+  </div>
+</section>
+
+<section id="method">
+  <div class="wrap">
+    <h2>Method Highlights</h2>
+    <ul class="highlights">
+      <li><strong>G<sub>c</sub>, a geometric complexity score</strong> built from three measurable
+        point-cloud properties (density, surface-normal entropy, voxel occupancy), with three
+        concrete fixes to a naive version of this score that we found breaks its own stated
+        hypothesis.</li>
+      <li><strong>A geometry-augmented repeat factor</strong> that reduces exactly to E-IRFS when
+        the geometry term is disabled (β = 0), making β a direct, one-parameter ablation
+        handle.</li>
+      <li><strong>Per-class gains that track a measurable mechanism, not luck.</strong> The
+        realized exposure gain a class receives correlates with its accuracy change
+        (Spearman ρ ≈ 0.70) far better than the geometry score alone does (ρ ≈ 0.32), because
+        geometry helps most when it amplifies an existing frequency-driven need for exposure.</li>
+      <li><strong>Validated on two detectors, two datasets, replicated across many seeds.</strong>
+        CenterPoint and PointPillars on nuScenes (2 seeds each), and a cross-dataset transfer
+        check on KITTI (PointPillars, 6 seeds), all with hyperparameters tuned once on nuScenes
+        and never touched again.</li>
+      <li><strong>Honest about where it doesn't work.</strong> Not every class benefits reliably,
+        and the results below report that plainly rather than only showing the classes that
+        improved. See <a href="#results">Results</a>.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="wrap">
+    <h2>Demo</h2>
+    <p class="lede" style="margin-bottom:24px;">
+      A full driving scene rendered as Vanilla | E-IRFS | GA-EIRFS side by side in bird's-eye
+      view, generated directly from trained checkpoints with
+      <code>scripts/render_comparison_video.py</code>.
+    </p>
+    <div class="video-wrap">
+      <video controls muted loop playsinline preload="metadata" poster="assets/three_way_comparison_v2_1.png">
+        <source src="assets/scene_comparison.mp4" type="video/mp4">
+        Your browser doesn't support embedded video —
+        <a href="assets/scene_comparison.mp4">download the clip directly</a>.
+      </video>
+    </div>
+  </div>
+</section>
+
+<section id="results">
+  <div class="wrap">
+    <h2>Results</h2>
+    <p class="lede">
+      Full per-class breakdowns, the β sensitivity sweep, and the full derivation of every number
+      below are in the paper. This is the headline result.
+    </p>
+
+    <h3>nuScenes, 20 epochs</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Detector</th><th>Seed</th><th>Vanilla mAP</th><th>GA-EIRFS mAP</th><th>Δ</th><th>Vanilla NDS</th><th>GA-EIRFS NDS</th><th>Δ</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>CenterPoint</td><td>666</td><td>0.552</td><td class="win">0.563</td><td class="win">+1.1pp</td><td>0.635</td><td class="win">0.642</td><td class="win">+0.7pp</td></tr>
+          <tr><td>CenterPoint</td><td>1337</td><td>0.554</td><td class="win">0.563</td><td class="win">+0.9pp</td><td>0.638</td><td class="win">0.641</td><td class="win">+0.3pp</td></tr>
+          <tr><td>PointPillars</td><td>666</td><td>0.385</td><td class="win">0.388</td><td class="win">+0.4pp</td><td>0.536</td><td class="win">0.538</td><td class="win">+0.3pp</td></tr>
+          <tr><td>PointPillars</td><td>1337</td><td>0.382</td><td class="win">0.395</td><td class="win">+1.3pp</td><td>0.534</td><td class="win">0.541</td><td class="win">+0.7pp</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      GA-EIRFS improves both mAP and NDS in every one of the four detector/seed combinations. The
+      single largest per-class gain is bicycle, the highest-G<sub>c</sub> class:
+      <strong>+17.4% relative AP</strong> on CenterPoint.
+    </p>
+
+    <h3>KITTI transfer (PointPillars, 6 seeds, no hyperparameter retuning)</h3>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Class</th><th>Vanilla (mean)</th><th>GA-EIRFS (mean)</th><th>rel%</th><th>Consistency across seeds</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Car</td><td>75.95</td><td>75.88</td><td class="flat">−0.08%</td><td>Flat, as expected for the majority class</td></tr>
+          <tr><td>Pedestrian</td><td>43.71</td><td class="win">45.20</td><td class="win">+3.54%</td><td><strong>5 of 6 seeds positive, dependable</strong></td></tr>
+          <tr><td>Cyclist</td><td>61.74</td><td>61.92</td><td>+0.29%</td><td>4 of 6 positive, large opposing swings, <strong>not dependable</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">
+      We report this table exactly as it came out, including the class where the method doesn't
+      give a reliable win. Cyclist is KITTI's rarest class (734 instances across only 514 frames)
+      <em>and</em> gets the largest repeat factor of the three classes — a large repeat-factor
+      boost applied to that small a pool of frames makes the outcome genuinely sensitive to which
+      seed you happen to run. This same effect also shows up on nuScenes (<code>trailer</code>),
+      so it isn't unique to KITTI.
+    </p>
+  </div>
+</section>
+
+<section id="citation">
+  <div class="wrap">
+    <h2>Citation</h2>
+    <p class="lede" style="margin-bottom:20px;">If you use this code, please cite:</p>
+
+    <div class="cite-block">
+      <button class="copy-btn" onclick="copyCite('cite1', this)">Copy</button>
+      <pre class="bibtex" id="cite1">@inproceedings{ahmed2027gaeirfs,
+  title     = {GA-EIRFS: Geometry-Augmented Repeat Factor Sampling for Long-Tailed LiDAR 3D Object Detection},
+  author    = {Ahmed, Taufiq and {\'A}lvarez Casado, Constantino and Herrera Castro, Daniel and Sharifipour, Sasan and Kumar, Abhishek and Bordallo L{\'o}pez, Miguel},
+  booktitle = {REPLACE_ME_ONCE_ACCEPTED},
+  year      = {2027}
+}</pre>
+    </div>
+    <p class="note" style="margin:0 0 28px;">This paper is currently under review — this entry will be updated with venue, page numbers, and a paper link once it's public.</p>
+
+    <p class="lede" style="margin-bottom:20px;">This work builds directly on our earlier <a href="https://arxiv.org/abs/2503.21893">E-IRFS paper</a> (IROS 2025):</p>
+    <div class="cite-block">
+      <button class="copy-btn" onclick="copyCite('cite2', this)">Copy</button>
+      <pre class="bibtex" id="cite2">@inproceedings{ahmed2025eirfs,
+  title     = {Exponentially Weighted Instance-Aware Repeat Factor Sampling for Long-Tailed Object Detection Model Training in Unmanned Aerial Vehicles Surveillance Scenarios},
+  author    = {Ahmed, Taufiq and Kumar, Abhishek and {\'A}lvarez Casado, Constantino and Zhang, Anlan and H{\"a}nninen, Tuomo and Loven, Lauri and Bordallo L{\'o}pez, Miguel and Tarkoma, Sasu},
+  booktitle = {2025 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  pages     = {11546--11552},
+  year      = {2025}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Built on <a href="https://github.com/open-mmlab/OpenPCDet">OpenPCDet</a>. Released under the Apache 2.0 License.</p>
+    <p><a href="https://github.com/Multimodal-Sensing-Lab/GA-EIRFS">github.com/Multimodal-Sensing-Lab/GA-EIRFS</a></p>
+  </div>
+</footer>
+
+<script>
+function copyCite(id, btn){
+  var text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(function(){
+    var orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = orig; }, 1500);
+  });
+}
+</script>
+
+</body>
+</html>

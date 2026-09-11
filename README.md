@@ -7,8 +7,9 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](#installation)
 [![Built on OpenPCDet](https://img.shields.io/badge/built%20on-OpenPCDet-orange.svg)](https://github.com/open-mmlab/OpenPCDet)
+[![Project Page](https://img.shields.io/badge/project-page-3d4ff0.svg)](https://multimodal-sensing-lab.github.io/GA-EIRFS/)
 
-**[Paper (PDF)]() · [Installation](#installation) · [Dataset Prep](#dataset-preparation) · [Getting Started](#getting-started) · [Results](#results)**
+**[Project Page](https://multimodal-sensing-lab.github.io/GA-EIRFS/) · [Paper (PDF)]() · [Installation](#installation) · [Dataset Prep](#dataset-preparation) · [Getting Started](#getting-started) · [Results](#results)**
 
 </div>
 
