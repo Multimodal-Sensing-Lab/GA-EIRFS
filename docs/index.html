@@ -142,9 +142,9 @@
   <div class="inner">
     <span class="brand">GA-EIRFS</span>
     <div class="links">
+      <a href="#demo">Demo</a>
       <a href="#abstract">Abstract</a>
       <a href="#method">Method</a>
-      <a href="#demo">Demo</a>
       <a href="#results">Results</a>
       <a href="#citation">Citation</a>
       <a href="https://github.com/Multimodal-Sensing-Lab/GA-EIRFS">Code</a>
@@ -178,17 +178,23 @@
   </div>
 </header>
 
-<div class="wrap teaser">
-  <img src="assets/three_way_comparison_v2_1.png" alt="Vanilla vs E-IRFS vs GA-EIRFS bird's-eye-view comparison on a nuScenes bicycle cluster">
-  <p class="caption">
-    nuScenes val sample 1324, a cluster of bicycles at bird's-eye view. Green boxes are ground
-    truth, red dashed boxes are predictions scoring at least 0.3. Vanilla and E-IRFS produce the
-    same two detections at the same confidence, 0.34 and 0.31, since E-IRFS's frequency-only
-    signal isn't enough to change behavior on its own. GA-EIRFS detects more of the same cluster,
-    at higher confidence — 0.42 and 0.35 among them — with no change to the detector itself, only
-    to which frames it was shown more often during training.
-  </p>
-</div>
+<section id="demo">
+  <div class="wrap">
+    <h2>Demo</h2>
+    <p class="lede" style="margin-bottom:24px;">
+      A full driving scene rendered as Vanilla | E-IRFS | GA-EIRFS side by side in bird's-eye
+      view, generated directly from trained checkpoints with
+      <code>scripts/render_comparison_video.py</code>.
+    </p>
+    <div class="video-wrap">
+      <video controls muted loop playsinline preload="metadata" poster="assets/three_way_comparison_v2_1.png">
+        <source src="assets/scene_comparison.mp4" type="video/mp4">
+        Your browser doesn't support embedded video —
+        <a href="assets/scene_comparison.mp4">download the clip directly</a>.
+      </video>
+    </div>
+  </div>
+</section>
 
 <section id="abstract">
   <div class="wrap">
@@ -235,23 +241,17 @@
   </div>
 </section>
 
-<section id="demo">
-  <div class="wrap">
-    <h2>Demo</h2>
-    <p class="lede" style="margin-bottom:24px;">
-      A full driving scene rendered as Vanilla | E-IRFS | GA-EIRFS side by side in bird's-eye
-      view, generated directly from trained checkpoints with
-      <code>scripts/render_comparison_video.py</code>.
-    </p>
-    <div class="video-wrap">
-      <video controls muted loop playsinline preload="metadata" poster="assets/three_way_comparison_v2_1.png">
-        <source src="assets/scene_comparison.mp4" type="video/mp4">
-        Your browser doesn't support embedded video —
-        <a href="assets/scene_comparison.mp4">download the clip directly</a>.
-      </video>
-    </div>
-  </div>
-</section>
+<div class="wrap teaser">
+  <img src="assets/three_way_comparison_v2_1.png" alt="Vanilla vs E-IRFS vs GA-EIRFS bird's-eye-view comparison on a nuScenes bicycle cluster">
+  <p class="caption">
+    nuScenes val sample 1324, a cluster of bicycles at bird's-eye view. Green boxes are ground
+    truth, red dashed boxes are predictions scoring at least 0.3. Vanilla and E-IRFS produce the
+    same two detections at the same confidence, 0.34 and 0.31, since E-IRFS's frequency-only
+    signal isn't enough to change behavior on its own. GA-EIRFS detects more of the same cluster,
+    at higher confidence — 0.42 and 0.35 among them — with no change to the detector itself, only
+    to which frames it was shown more often during training.
+  </p>
+</div>
 
 <section id="results">
   <div class="wrap">
