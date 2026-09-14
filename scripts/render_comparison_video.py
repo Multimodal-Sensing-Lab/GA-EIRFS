@@ -7,12 +7,14 @@ find_and_render_comparison.py. The crop is ego-centered (fixed radius around
 the ego vehicle at each frame) rather than world-frame-fixed, so it behaves
 like a chase-cam view: objects naturally enter/exit frame as the car drives.
 
-E-IRFS panel note: as elsewhere, this reuses the vanilla checkpoint's
-predictions (see find_and_render_comparison.py's module docstring for why).
+All three panels come from independently trained checkpoints.
 
 Usage:
     python scripts/render_comparison_video.py --center_idx 1324 \
-        --out output_viz/scene_comparison.mp4 --fps 4
+        --out output_viz/scene_comparison.mp4 --fps 4 \
+        --vanilla_ckpt output/nuscenes_models/centerpoint_trainval_vanilla/run1/ckpt/checkpoint_epoch_20.pth \
+        --eirfs_ckpt output/nuscenes_models/centerpoint_trainval_eirfs/run1/ckpt/checkpoint_epoch_20.pth \
+        --ga_ckpt output/nuscenes_models/centerpoint_trainval_ga_eirfs/run1/ckpt/checkpoint_epoch_20.pth
 """
 import argparse
 import sys
@@ -70,7 +72,8 @@ def find_scene_range(val_set, center_idx, gap_thresh=1.0):
 
 
 def render_frame(idx, r, score_thresh, v_boxes, v_scores, v_labels,
-                  g_boxes, g_scores, g_labels, points, gt, class_names):
+                  e_boxes, e_scores, e_labels, g_boxes, g_scores, g_labels,
+                  points, gt, class_names):
     cx0, cy0 = 0.0, 0.0  # ego-centered crop
 
     def in_range(arr_xy):
@@ -81,7 +84,7 @@ def render_frame(idx, r, score_thresh, v_boxes, v_scores, v_labels,
 
     panels = [
         ('Vanilla', v_boxes, v_scores, v_labels),
-        ('E-IRFS', v_boxes, v_scores, v_labels),
+        ('E-IRFS', e_boxes, e_scores, e_labels),
         ('GA-EIRFS (ours)', g_boxes, g_scores, g_labels),
     ]
 
@@ -134,15 +137,30 @@ def main():
     ap.add_argument('--fps', type=float, default=4.0, help='output video fps (2 native keyframes/sec, held longer for smoother playback)')
     ap.add_argument('--hold_frames', type=int, default=2, help='repeat each rendered frame this many times in the video')
     ap.add_argument('--out', type=str, default='output_viz/scene_comparison.mp4')
+    ap.add_argument('--vanilla_cfg_file', type=str, default='cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml',
+                     help='relative to OpenPCDet/tools')
+    ap.add_argument('--eirfs_cfg_file', type=str, default='cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml',
+                     help='relative to OpenPCDet/tools (sampler choice does not change model '
+                          'architecture, so the vanilla cfg\'s MODEL section applies here too)')
+    ap.add_argument('--ga_cfg_file', type=str, default='cfgs/nuscenes_models/centerpoint_trainval_ga_eirfs.yaml',
+                     help='relative to OpenPCDet/tools')
+    ap.add_argument('--vanilla_ckpt', type=str, required=True,
+                     help='e.g. output/nuscenes_models/centerpoint_trainval_vanilla/run1/ckpt/checkpoint_epoch_20.pth')
+    ap.add_argument('--eirfs_ckpt', type=str, required=True,
+                     help='e.g. output/nuscenes_models/centerpoint_trainval_eirfs/run1/ckpt/checkpoint_epoch_20.pth')
+    ap.add_argument('--ga_ckpt', type=str, required=True,
+                     help='e.g. output/nuscenes_models/centerpoint_trainval_ga_eirfs/run1/ckpt/checkpoint_epoch_20.pth')
     args = ap.parse_args()
 
     import os
     os.chdir(OPENPCDET_ROOT / 'tools')
 
-    vanilla_cfg_file = 'cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml'
-    ga_cfg_file = 'cfgs/nuscenes_models/centerpoint_trainval_ga_eirfs.yaml'
-    vanilla_ckpt = OPENPCDET_ROOT / 'output/nuscenes_models/centerpoint_trainval_vanilla/trainval20ep_seeded/ckpt/checkpoint_epoch_20.pth'
-    ga_ckpt = OPENPCDET_ROOT / 'output/nuscenes_models/centerpoint_trainval_dias3d/trainval20ep_seeded/ckpt/checkpoint_epoch_20.pth'
+    vanilla_cfg_file = args.vanilla_cfg_file
+    eirfs_cfg_file = args.eirfs_cfg_file
+    ga_cfg_file = args.ga_cfg_file
+    vanilla_ckpt = OPENPCDET_ROOT / args.vanilla_ckpt
+    eirfs_ckpt = OPENPCDET_ROOT / args.eirfs_ckpt
+    ga_ckpt = OPENPCDET_ROOT / args.ga_ckpt
 
     cfg_from_yaml_file(vanilla_cfg_file, cfg)
     logger = common_utils.create_logger()
@@ -155,6 +173,11 @@ def main():
     vanilla_model = build_network(model_cfg=cfg.MODEL, num_class=len(class_names), dataset=val_set)
     vanilla_model.load_params_from_file(filename=str(vanilla_ckpt), logger=logger, to_cpu=False)
     vanilla_model.cuda().eval()
+
+    cfg_from_yaml_file(eirfs_cfg_file, cfg)
+    eirfs_model = build_network(model_cfg=cfg.MODEL, num_class=len(class_names), dataset=val_set)
+    eirfs_model.load_params_from_file(filename=str(eirfs_ckpt), logger=logger, to_cpu=False)
+    eirfs_model.cuda().eval()
 
     cfg_from_yaml_file(ga_cfg_file, cfg)
     ga_model = build_network(model_cfg=cfg.MODEL, num_class=len(class_names), dataset=val_set)
@@ -170,13 +193,15 @@ def main():
 
     for idx in range(lo, hi + 1):
         v_boxes, v_scores, v_labels, data_dict = run_inference(vanilla_model, val_set, idx, args.score_thresh)
+        e_boxes, e_scores, e_labels, _ = run_inference(eirfs_model, val_set, idx, args.score_thresh)
         g_boxes, g_scores, g_labels, _ = run_inference(ga_model, val_set, idx, args.score_thresh)
         points = data_dict['points'].cpu().numpy()[:, 1:4]
         gt = data_dict['gt_boxes'][0].cpu().numpy()
         gt = gt[np.any(gt != 0, axis=1)]
 
         frame = render_frame(idx, args.point_range, args.score_thresh, v_boxes, v_scores, v_labels,
-                              g_boxes, g_scores, g_labels, points, gt, class_names)
+                              e_boxes, e_scores, e_labels, g_boxes, g_scores, g_labels,
+                              points, gt, class_names)
         for _ in range(args.hold_frames):
             writer.append_data(frame)
         print(f'  rendered frame {idx} ({idx - lo + 1}/{hi - lo + 1})')

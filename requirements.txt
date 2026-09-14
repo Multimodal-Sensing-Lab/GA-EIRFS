@@ -9,6 +9,9 @@ numpy
 scipy
 open3d
 
+# Needed by patches/kitti_rotate_iou_fix.py (CPU rotated-IoU fallback):
+shapely
+
 # Only needed if you use scripts/render_comparison_video.py or
 # scripts/plot_frequency_vs_density.py:
 matplotlib

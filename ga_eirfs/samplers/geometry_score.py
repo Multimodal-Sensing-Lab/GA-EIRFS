@@ -5,8 +5,8 @@ This computes the geometry-aware difficulty signal for each class.
 G_c quantifies how hard a class is to detect based on its 3D structure —
 independent of how often it appears.
 
-Run this AFTER you have the baseline and E-IRFS results.
-It produces the G_c values you will use in the full GA-EIRFS sampler.
+Run this AFTER the baseline and E-IRFS results are available.
+It produces the G_c values used in the full GA-EIRFS sampler.
 
 Canonical source lives here: ga_eirfs/samplers/geometry_score.py
 To integrate with OpenPCDet, copy it to:

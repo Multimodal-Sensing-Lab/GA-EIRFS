@@ -251,6 +251,10 @@ cd OpenPCDet/tools
 python train.py --cfg_file cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml \
     --batch_size 8 --epochs 20 --workers 8 --extra_tag run1
 
+# nuScenes, CenterPoint, E-IRFS-only (frequency term, no geometry — GA_EIRFS_BETA: 0.0)
+python train.py --cfg_file cfgs/nuscenes_models/centerpoint_trainval_eirfs.yaml \
+    --batch_size 8 --epochs 20 --workers 8 --extra_tag run1
+
 # nuScenes, CenterPoint, GA-EIRFS
 python train.py --cfg_file cfgs/nuscenes_models/centerpoint_trainval_ga_eirfs.yaml \
     --batch_size 8 --epochs 20 --workers 8 --extra_tag run1
@@ -263,6 +267,12 @@ python train.py --cfg_file cfgs/nuscenes_models/pointpillar_trainval_ga_eirfs.ya
 python train.py --cfg_file cfgs/kitti_models/pointpillar_ga_eirfs.yaml \
     --batch_size 4 --epochs 80 --workers 4 --extra_tag run1
 ```
+
+`*_eirfs.yaml` configs (nuScenes CenterPoint/PointPillars, KITTI PointPillars) are also provided
+alongside every `*_ga_eirfs.yaml` — they use the same GA-EIRFS sampler with `GA_EIRFS_BETA: 0.0`,
+which is mathematically identical to plain E-IRFS (see [Introduction](#introduction)). Train one
+of these if you want a real, independently trained E-IRFS checkpoint, e.g. for
+`scripts/find_and_render_comparison.py`'s `--eirfs_ckpt`.
 
 For seed replication (recommended, single-seed results can be misleading, see
 [Results](#results)), add `--fix_random_seed --seed <N>`.
@@ -303,8 +313,8 @@ GA-EIRFS/
 │       ├── geometry_score.py      # G_c: density + surface-normal entropy + voxel occupancy
 │       └── ga_eirfs_sampler.py    # The full GA-EIRFS sampler
 ├── configs/
-│   ├── nuscenes/                  # CenterPoint & PointPillars, vanilla + GA-EIRFS
-│   └── kitti/                     # PointPillars, vanilla + GA-EIRFS
+│   ├── nuscenes/                  # CenterPoint & PointPillars, vanilla + E-IRFS + GA-EIRFS
+│   └── kitti/                     # PointPillars, vanilla + E-IRFS + GA-EIRFS
 ├── scripts/
 │   ├── adapt_kitti_infos.py            # KITTI info-format adapter (see Dataset Preparation)
 │   ├── compute_kitti_geometry_scores.py
@@ -313,8 +323,7 @@ GA-EIRFS/
 │   ├── check_density_range_confound.py
 │   ├── find_and_render_comparison.py   # Vanilla | E-IRFS | GA-EIRFS BEV comparison renderer
 │   ├── render_comparison_video.py      # Same, over a full driving scene, as a video
-│   ├── plot_frequency_vs_density.py
-│   └── visualize_inference.py
+│   └── plot_frequency_vs_density.py
 ├── patches/
 │   └── kitti_rotate_iou_fix.py    # Verified-correct replacement for OpenPCDet's KITTI eval bug
 └── assets/
@@ -334,20 +343,27 @@ checkpoints.
 # Scan the validation set for frames where GA-EIRFS visibly beats vanilla on a target class,
 # and render still-frame comparisons for the best matches
 python scripts/find_and_render_comparison.py \
-    --scan 6019 --num_images 3 --out_prefix output_viz/three_way_comparison
+    --scan 6019 --num_images 3 --out_prefix output_viz/three_way_comparison \
+    --vanilla_ckpt output/nuscenes_models/centerpoint_trainval_vanilla/run1/ckpt/checkpoint_epoch_20.pth \
+    --eirfs_ckpt output/nuscenes_models/centerpoint_trainval_eirfs/run1/ckpt/checkpoint_epoch_20.pth \
+    --ga_ckpt output/nuscenes_models/centerpoint_trainval_ga_eirfs/run1/ckpt/checkpoint_epoch_20.pth
 
 # Render a full ~20s scene as a video instead of a single frame.
 # --center_idx is any val index inside the scene you want; the script auto-detects
 # that scene's full boundary from timestamp gaps and renders every keyframe in it.
 python scripts/render_comparison_video.py --center_idx 1324 \
-    --out output_viz/scene_comparison.mp4 --fps 4
+    --out output_viz/scene_comparison.mp4 --fps 4 \
+    --vanilla_ckpt output/nuscenes_models/centerpoint_trainval_vanilla/run1/ckpt/checkpoint_epoch_20.pth \
+    --eirfs_ckpt output/nuscenes_models/centerpoint_trainval_eirfs/run1/ckpt/checkpoint_epoch_20.pth \
+    --ga_ckpt output/nuscenes_models/centerpoint_trainval_ga_eirfs/run1/ckpt/checkpoint_epoch_20.pth
 ```
 
-Both scripts load real trained checkpoints and run live inference, they do not reuse cached
-predictions. If you don't have a checkpoint for one of the three variants (for example, no
-20-epoch E-IRFS-only run), check each script's own `--help` and header comment, they document
-exactly what they fall back to and why, rather than silently substituting a different model's
-output under the wrong label.
+Checkpoint paths are relative to `OpenPCDet/`, and should match whatever `--extra_tag` you trained with
+(the examples above assume `--extra_tag run1`, per Getting Started).
+
+Both scripts require three independently trained checkpoints (`--vanilla_ckpt`, `--eirfs_ckpt`,
+`--ga_ckpt`) and run live inference on each, they do not reuse cached predictions or substitute
+one model's output for another's.
 
 ---
 

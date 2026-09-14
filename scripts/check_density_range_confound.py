@@ -1,23 +1,18 @@
 """
 Density-vs-range confound check, and the final range-corrected G_c comparison.
 
-This persists the exact computation originally run inline during paper-writing
-(never saved to a script at the time) so it's independently reproducible.
-Companion to scripts/check_range_confound.py, which already persists the
+Companion to scripts/check_range_confound.py, which covers the
 entropy/occupancy vs. range checks.
 
-Methodology note (important for matching the paper's exact wording): the
-final "range-corrected G_c" comparison below only range-corrects the entropy
-and occupancy components. Density's own robustness to range was established
-separately (raw ranking vs. range-normalized-instance ranking, both computed
-directly from the pkl, no dependence on the pooled regression used here) and
-found robust (Spearman rho~0.976) -- so the final combined-G_c comparison
-reuses the standard (uncorrected) density score unchanged, exactly as
+Methodology note: the final "range-corrected G_c" comparison below only
+range-corrects the entropy and occupancy components. Density's own
+robustness to range was established separately (raw ranking vs.
+range-normalized-instance ranking, both computed directly from the pkl, no
+dependence on the pooled regression used here) and found robust (Spearman
+rho~0.976) -- so the final combined-G_c comparison reuses the standard
+(uncorrected) density score unchanged, exactly as
 compute_point_density_scores() already computes it. It does NOT feed a
-range-corrected density into the final G_c number. The paper text must say
-"entropy and occupancy" range-corrected in the final combination, not
-"all three" -- if it says "all three," that's a bug in the prose, not in
-this computation.
+range-corrected density into the final G_c number.
 
 Usage:
     python scripts/check_density_range_confound.py

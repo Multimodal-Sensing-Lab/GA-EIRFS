@@ -1,6 +1,7 @@
 """
 Check whether distance-from-ego confounds the entropy and occupancy components
-of G_c, the same way it was already checked for density (see conversation).
+of G_c, the same way it was already checked for density in
+scripts/check_density_range_confound.py.
 
 For each component: measure within-class correlation between range and the
 raw signal, then range-normalize and see whether the class-level ranking

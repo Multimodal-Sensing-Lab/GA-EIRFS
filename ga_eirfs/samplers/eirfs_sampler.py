@@ -2,14 +2,13 @@
 E-IRFS Sampler for 3D Object Detection (nuScenes + OpenPCDet)
 
 This file implements E-IRFS adapted to 3D point cloud detection.
-The formula is identical to your E-IRFS paper but applied to 3D frames
+The formula is identical to the E-IRFS paper but applied to 3D frames
 instead of 2D images, and 3D bounding box instances instead of 2D boxes.
 
 Canonical source lives here: ga_eirfs/samplers/eirfs_sampler.py
 To integrate with OpenPCDet, copy it to:
     OpenPCDet/pcdet/datasets/nuscenes/eirfs_sampler.py
-and follow the integration instructions at the bottom of this file
-(see also documents/Step5_OpenPCDet_Patch.md).
+and follow the integration instructions at the bottom of this file.
 """
 
 import numpy as np
@@ -31,7 +30,7 @@ def compute_3d_frequencies(infos_path: str) -> dict:
     Compute per-class image frequency (f_{i,c}) and instance frequency (f_{b,c})
     from nuScenes OpenPCDet info files.
 
-    These are the 3D analogues of the same quantities in your E-IRFS paper:
+    These are the 3D analogues of the same quantities in the E-IRFS paper:
         f_{i,c}  = fraction of FRAMES containing at least one instance of class c
         f_{b,c}  = fraction of all bounding boxes that belong to class c
 
@@ -74,7 +73,7 @@ def compute_3d_frequencies(infos_path: str) -> dict:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PART B: E-IRFS repeat factor computation
-# Directly implements Equation 3 from your paper, adapted for 3D frames
+# Directly implements Equation 3 from the E-IRFS paper, adapted for 3D frames
 # ─────────────────────────────────────────────────────────────────────────────
 
 def compute_eirfs_repeat_factors(
@@ -88,7 +87,7 @@ def compute_eirfs_repeat_factors(
     Formula (from E-IRFS paper, Eq. 3):
         r_c = exp( alpha * sqrt( threshold / sqrt(f_{i,c} * f_{b,c}) ) )
 
-    In your paper for 2D:
+    In the E-IRFS paper (2D):
         - f_{i,c} = image frequency = fraction of images with class c
         - f_{b,c} = box frequency   = fraction of all boxes belonging to c
 
@@ -317,7 +316,7 @@ Replace it with:
 
 OPTION 2 (Cleaner — add to the YAML config):
 ---------------------------------------------
-In your training config yaml, add under DATA_CONFIG:
+In the training config yaml, add under DATA_CONFIG:
 
     USE_EIRFS: True
     EIRFS_ALPHA: 2.0

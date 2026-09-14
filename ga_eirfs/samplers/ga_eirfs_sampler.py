@@ -17,8 +17,7 @@ normal-entropy estimation costs on the order of ~2h on full trainval).
 
 This sampler is the geometry-augmented E-IRFS method reported in the paper:
 6 independent training runs on nuScenes and KITTI, gains concentrated in the
-highest-G_c classes. See the paper and documents/GA_EIRFS_Results.md for the
-full experimental writeup.
+highest-G_c classes. See the paper for the full experimental writeup.
 
 Usage:
     sampler = GAEIRFSSampler3D(

@@ -2,12 +2,7 @@
 Scan nuScenes val for frames where GA-EIRFS visibly beats vanilla on bicycle/
 motorcycle detection (more matched target-class GT, zero GA-EIRFS false
 positives on those classes) and render 3-panel side-by-side BEV comparisons:
-Vanilla | E-IRFS (uses the vanilla checkpoint as a stand-in — see note below) | GA-EIRFS.
-
-We don't have an E-IRFS-only checkpoint trained for 20 epochs (only 12), and the
-paper's own result is that E-IRFS-only is statistically indistinguishable from
-vanilla, so the middle panel reuses the vanilla checkpoint's predictions rather
-than misrepresenting a different model.
+Vanilla | E-IRFS | GA-EIRFS, from three independently trained checkpoints.
 
 The crop around each frame's target-class GT is auto-fit: GT boxes are
 clustered by proximity (single-linkage, eps=12m) and the largest cluster's
@@ -16,7 +11,10 @@ two unrelated clusters doesn't end up cropped to empty space between them.
 
 Usage:
     python scripts/find_and_render_comparison.py --scan 6019 --num_images 3 \
-        --out_prefix output_viz/three_way_comparison
+        --out_prefix output_viz/three_way_comparison \
+        --vanilla_ckpt output/nuscenes_models/centerpoint_trainval_vanilla/run1/ckpt/checkpoint_epoch_20.pth \
+        --eirfs_ckpt output/nuscenes_models/centerpoint_trainval_eirfs/run1/ckpt/checkpoint_epoch_20.pth \
+        --ga_ckpt output/nuscenes_models/centerpoint_trainval_ga_eirfs/run1/ckpt/checkpoint_epoch_20.pth
 """
 import argparse
 import sys
@@ -134,7 +132,8 @@ def auto_crop(gt_target, pad=4.0, min_r=6.0):
 
 
 def render_panel_figure(idx, cx0, cy0, r, score_thresh, v_boxes, v_scores, v_labels,
-                         g_boxes, g_scores, g_labels, points, gt, class_names, out_path):
+                         e_boxes, e_scores, e_labels, g_boxes, g_scores, g_labels,
+                         points, gt, class_names, out_path):
     def in_range(arr_xy):
         return (np.abs(arr_xy[:, 0] - cx0) <= r) & (np.abs(arr_xy[:, 1] - cy0) <= r)
 
@@ -143,7 +142,7 @@ def render_panel_figure(idx, cx0, cy0, r, score_thresh, v_boxes, v_scores, v_lab
 
     panels = [
         ('Vanilla (no rebalancing)', v_boxes, v_scores, v_labels),
-        ('E-IRFS', v_boxes, v_scores, v_labels),
+        ('E-IRFS', e_boxes, e_scores, e_labels),
         ('GA-EIRFS (ours)', g_boxes, g_scores, g_labels),
     ]
 
@@ -205,15 +204,30 @@ def main():
     ap.add_argument('--center_x', type=float, default=None, help='manual crop-center override (only valid with a single --force_idx)')
     ap.add_argument('--center_y', type=float, default=None)
     ap.add_argument('--point_range', type=float, default=None, help='manual crop half-width override (only valid with a single --force_idx)')
+    ap.add_argument('--vanilla_cfg_file', type=str, default='cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml',
+                     help='relative to OpenPCDet/tools')
+    ap.add_argument('--eirfs_cfg_file', type=str, default='cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml',
+                     help='relative to OpenPCDet/tools (sampler choice does not change model '
+                          'architecture, so the vanilla cfg\'s MODEL section applies here too)')
+    ap.add_argument('--ga_cfg_file', type=str, default='cfgs/nuscenes_models/centerpoint_trainval_ga_eirfs.yaml',
+                     help='relative to OpenPCDet/tools')
+    ap.add_argument('--vanilla_ckpt', type=str, required=True,
+                     help='e.g. output/nuscenes_models/centerpoint_trainval_vanilla/run1/ckpt/checkpoint_epoch_20.pth')
+    ap.add_argument('--eirfs_ckpt', type=str, required=True,
+                     help='e.g. output/nuscenes_models/centerpoint_trainval_eirfs/run1/ckpt/checkpoint_epoch_20.pth')
+    ap.add_argument('--ga_ckpt', type=str, required=True,
+                     help='e.g. output/nuscenes_models/centerpoint_trainval_ga_eirfs/run1/ckpt/checkpoint_epoch_20.pth')
     args = ap.parse_args()
 
     import os
     os.chdir(OPENPCDET_ROOT / 'tools')
 
-    vanilla_cfg_file = 'cfgs/nuscenes_models/centerpoint_trainval_vanilla.yaml'
-    ga_cfg_file = 'cfgs/nuscenes_models/centerpoint_trainval_ga_eirfs.yaml'
-    vanilla_ckpt = OPENPCDET_ROOT / 'output/nuscenes_models/centerpoint_trainval_vanilla/trainval20ep_seeded/ckpt/checkpoint_epoch_20.pth'
-    ga_ckpt = OPENPCDET_ROOT / 'output/nuscenes_models/centerpoint_trainval_dias3d/trainval20ep_seeded/ckpt/checkpoint_epoch_20.pth'
+    vanilla_cfg_file = args.vanilla_cfg_file
+    eirfs_cfg_file = args.eirfs_cfg_file
+    ga_cfg_file = args.ga_cfg_file
+    vanilla_ckpt = OPENPCDET_ROOT / args.vanilla_ckpt
+    eirfs_ckpt = OPENPCDET_ROOT / args.eirfs_ckpt
+    ga_ckpt = OPENPCDET_ROOT / args.ga_ckpt
 
     cfg_from_yaml_file(vanilla_cfg_file, cfg)
     logger = common_utils.create_logger()
@@ -226,6 +240,11 @@ def main():
     vanilla_model = build_network(model_cfg=cfg.MODEL, num_class=len(class_names), dataset=val_set)
     vanilla_model.load_params_from_file(filename=str(vanilla_ckpt), logger=logger, to_cpu=False)
     vanilla_model.cuda().eval()
+
+    cfg_from_yaml_file(eirfs_cfg_file, cfg)
+    eirfs_model = build_network(model_cfg=cfg.MODEL, num_class=len(class_names), dataset=val_set)
+    eirfs_model.load_params_from_file(filename=str(eirfs_ckpt), logger=logger, to_cpu=False)
+    eirfs_model.cuda().eval()
 
     cfg_from_yaml_file(ga_cfg_file, cfg)
     ga_model = build_network(model_cfg=cfg.MODEL, num_class=len(class_names), dataset=val_set)
@@ -298,6 +317,7 @@ def main():
         print(f'Rendering sample {idx} (vanilla matched={sel[2]}, GA-EIRFS matched={sel[3]})')
 
         v_boxes, v_scores, v_labels, data_dict = run_inference(vanilla_model, val_set, idx, args.score_thresh)
+        e_boxes, e_scores, e_labels, _ = run_inference(eirfs_model, val_set, idx, args.score_thresh)
         g_boxes, g_scores, g_labels, _ = run_inference(ga_model, val_set, idx, args.score_thresh)
         points = data_dict['points'].cpu().numpy()[:, 1:4]
         gt = data_dict['gt_boxes'][0].cpu().numpy()
@@ -314,7 +334,8 @@ def main():
 
         out_path = REPO_ROOT / f'{args.out_prefix}_{i+1}.png'
         render_panel_figure(idx, cx0, cy0, r, args.score_thresh, v_boxes, v_scores, v_labels,
-                             g_boxes, g_scores, g_labels, points, gt, class_names, out_path)
+                             e_boxes, e_scores, e_labels, g_boxes, g_scores, g_labels,
+                             points, gt, class_names, out_path)
 
 
 if __name__ == '__main__':
